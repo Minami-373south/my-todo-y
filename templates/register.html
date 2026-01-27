@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid vh-100 d-flex justify-content-center align-items-center position-relative">
+
+    <!-- ホームに戻るボタン -->
+    <a href="/login" class="btn btn-outline-secondary position-absolute start-0 top-0 m-4">
+        <i class="bi bi-box-arrow-in-right me-2"></i>ログイン画面に戻る
+    </a>
+
+    <form action="/register" method="post"
+        class="p-4 bg-light rounded shadow"
+        style="width: 100%; max-width: 500px;">
+
+        <h1 class="text-center mb-4"><i class="bi bi-person me-2"></i>{{ title }}</h1>
+
+        <p class="text-center text-danger">＊すべて必須項目です</p>
+
+        <!-- ユーザID -->
+        <div class="form-floating mb-3">
+            <input class="form-control {{ 'is-invalid' if empty_fields and empty_fields.id else '' }}"
+                type="text" maxlength="30"
+                name="id" id="id"
+                placeholder="ユーザIDを入力..." required
+                value="{{ id if id else '' }}">
+            <label for="id">ユーザID</label>
+            {% if empty_fields and empty_fields.id %}
+            <div class="invalid-feedback">必須項目です</div>
+            {% endif %}
+        </div>
+
+        <!-- 姓 -->
+        <div class="form-floating mb-3">
+            <input class="form-control {{ 'is-invalid' if empty_fields and empty_fields.lastname else '' }}"
+                maxlength="30" type="text"
+                name="lastname" id="lastname"
+                placeholder="姓を入力..." required
+                value="{{ lastname if lastname else '' }}">
+            <label for="lastname">姓</label>
+            {% if empty_fields and empty_fields.lastname %}
+            <div class="invalid-feedback">必須項目です</div>
+            {% endif %}
+        </div>
+
+        <!-- 名 -->
+        <div class="form-floating mb-3">
+            <input class="form-control {{ 'is-invalid' if empty_fields and empty_fields.firstname else '' }}"
+                type="text" maxlength="30"
+                name="firstname" id="firstname"
+                placeholder="名を入力..." required
+                value="{{ firstname if firstname else '' }}">
+            <label for="firstname">名</label>
+            {% if empty_fields and empty_fields.firstname %}
+            <div class="invalid-feedback">必須項目です</div>
+            {% endif %}
+        </div>
+
+        <!-- パスワード -->
+        <div class="form-floating mb-3 position-relative">
+            <input class="form-control {% if is_password_mismatch or (empty_fields and empty_fields.password) %}is-invalid{% endif %}"
+                type="password" maxlength="20"
+                name="password" id="password"
+                placeholder="パスワードを入力..." required>
+            <label for="password">パスワード</label>
+            <button type="button" id="togglePassword" class="btn btn-sm position-absolute"
+                    style="top: 50%; right: 10px; transform: translateY(-50%);
+                        border: none; background: none;">
+                <i class="bi bi-eye-slash-fill text-muted"></i>
+            </button>
+            {% if is_password_mismatch %}
+            <div class="invalid-feedback">パスワードが一致しません</div>
+            {% elif empty_fields and empty_fields.password %}
+            <div class="invalid-feedback">必須項目です</div>
+            {% endif %}
+        </div>
+
+        <!-- パスワード確認用 -->
+        <div class="form-floating mb-3 position-relative">
+            <input class="form-control {% if is_password_mismatch or (empty_fields and empty_fields.confirm_password) %}is-invalid{% endif %}"
+                type="password" maxlength="20"
+                name="confirm_password" id="confirm_password"
+                placeholder="パスワードを再入力..." required>
+            <label for="confirm_password">パスワード（確認用）</label>
+            <button type="button" id="toggleConfirmPassword" class="btn btn-sm position-absolute"
+                    style="top: 50%; right: 10px; transform: translateY(-50%);
+                        border: none; background: none;">
+                <i class="bi bi-eye-slash-fill text-muted"></i>
+            </button>
+            {% if is_password_mismatch %}
+            <div class="invalid-feedback">パスワードが一致しません</div>
+            {% elif empty_fields and empty_fields.confirm_password %}
+            <div class="invalid-feedback">必須項目です</div>
+            {% endif %}
+        </div>
+
+        <!-- 登録ボタン -->
+        <div class="form-floating">
+            <button type="submit" class="btn btn-primary w-100 py-3">登録</button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // --- パスワードトグル機能 ---
+    function setupPasswordToggle(inputId, toggleButtonId) {
+        const passwordInput = document.getElementById(inputId);
+        const toggleButton = document.getElementById(toggleButtonId);
+
+        if (!passwordInput || !toggleButton) { return; }
+
+        const toggleIcon = toggleButton.querySelector('i');
+
+        toggleButton.addEventListener('click', function() {
+            const currentType = passwordInput.getAttribute('type');
+            const newType = currentType === 'password' ? 'text' : 'password';
+
+            passwordInput.setAttribute('type', newType);
+
+            if (newType === 'text') {
+                toggleIcon.classList.remove('bi-eye-slash-fill');
+                toggleIcon.classList.add('bi-eye-fill');
+            } else {
+                toggleIcon.classList.remove('bi-eye-fill');
+                toggleIcon.classList.add('bi-eye-slash-fill');
+            }
+        });
+    }
+
+    setupPasswordToggle('password', 'togglePassword');
+    setupPasswordToggle('confirm_password', 'toggleConfirmPassword');
+
+    // --- サーバーサイドエラー後の動作 (赤枠のクリア) ---
+    document.querySelectorAll('.is-invalid').forEach(input => {
+        input.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        }, { once: true });
+    });
+});
+</script>
+{% endblock content %}

@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block content %}
+<form action="/create" method="post" >
+    <div class="row mb-1">
+        <div class="col mt-2">
+            <div class="form-floating">
+                <input class="form-control" type="text" name="name" id="name" placeholder="タスク名を入力...">
+                <label for="name" class="col-form-label">タスク名</label>
+            </div>
+        </div>
+        <div class="col-auto mt-2">
+            <div class="form-floating">
+                <input class="form-control" type="datetime-local" name="deadline" id="deadline">
+                <label for="deadline" class="col-form-label">締切日時</label>
+            </div>
+        </div>
+        <div class="col-auto mt-1">
+            <div class="row">
+                <div class="col">
+                    <input class="form-check-input" type="checkbox" name="is_shared" id="is_shared">
+                    <label for="is_shared" class="form-check-label"><i class="bi bi-share me-2"></i>共有する</label>
+                    <input class="form-check-input" type="checkbox" name="is_tracked" id="is_tracked">
+                    <label for="is_tracked" class="form-check-label"><i class="bi bi-crosshair2"></i>追跡する</label>
+                </div>
+            </div>
+
+            <input class="form-control btn btn-primary" type="submit" value="作成">
+        </div>
+    </div>
+</form>
+
+<div class="d-flex justify-content-between align-items-center">
+    <h2><i class="bi bi-calendar-minus"></i> 私のタスク</h2>
+
+    <form action="/search" method="GET" class="mb-3 ms-3">
+        <div class="input-group mt-3">
+            <input type="text" class="form-control w-auto" style="min-width:340px;" placeholder="タスク名で検索..." name="q">
+            <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search me-2"></i>検索
+            </button>
+        </div>    
+    </form>
+</div>
+
+
+<form action="/delete_multiple" method="POST">
+
+    <div class="d-flex justify-content-between mb-2">
+        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('選択したタスクを本当に削除しますか？');">
+            <i class="bi bi-trash-fill me-2"></i>選択した項目を削除
+        </button>
+
+        <div>
+            <a href="/incompleted" class="btn btn-link"><span style="display:inline-block; text-decoration:none;">❌</span>未完了タスク一覧</a>
+
+            <a href="/completed" class="btn btn-link"><span style="display:inline-block; text-decoration:none;">✅</span>完了タスク一覧</a>
+        </div>
+    </div>
+
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr class="border-bottom border-dark">
+            <th class="border-end border-#ccc"><i class="bi bi-trash2"></i></th>
+            <th class="border-end border-#ccc">
+                <div class="d-flex justify-content-between align-items-center">
+                タスクid
+                    <span>
+                        <a href="{{ url_for('index', sort='id', order='asc') }}"class="small text-decoration-none me-2 {% if sort=='id' and order=='asc' %}text-primary fw-bold{% else %}text-muted{% endif %}">▲</a><a href="{{ url_for('index', sort='id', order='desc') }}"class="small text-decoration-none me-1 {% if sort=='id' and order=='desc' %}text-primary fw-bold{% else %}text-muted{% endif %}">▼</a>
+                    </span>
+                </div>
+            </th>
+            <th class="border-end border-#ccc">
+                <div class="d-flex justify-content-between align-items-center">
+                    タスク名
+                    <span>
+                        <a href="{{ url_for('index', sort='name', order='asc') }}"class="small text-decoration-none me-2 {% if sort=='name' and order=='asc' %}text-primary fw-bold{% else %}text-muted{% endif %}">▲</a><a href="{{ url_for('index', sort='name', order='desc') }}"class="small text-decoration-none me-1 {% if sort=='name' and order=='desc' %}text-primary fw-bold{% else %}text-muted{% endif %}">▼</a>
+                    </span>
+                </div>
+            </th>
+            <th class="border-end border-#ccc">
+                <div class="d-flex justify-content-between align-items-center">
+                    締切日時
+                    <span>
+                        <a href="{{ url_for('index', sort='deadline', order='asc') }}"class="small text-decoration-none me-2 {% if sort=='deadline' and order=='asc' %}text-primary fw-bold{% else %}text-muted{% endif %}">▲</a><a href="{{ url_for('index', sort='deadline', order='desc') }}"class="small text-decoration-none me-1 {% if sort=='deadline' and order=='desc' %}text-primary fw-bold{% else %}text-muted{% endif %}">▼</a>
+                    </span>
+                </div>
+            </th>
+            <th class="border-end border-#ccc">共有</th>
+            <th class="border-end border-#ccc">作成日時</th>
+            <th class="border-end border-#ccc">完了</th>
+            <th class="border-end border-#ccc">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in my_tasks[:6] %}
+        <tr>
+            <td class="border-end border-light">
+                <input type="checkbox" name="task_ids" value="{{ task.id }}" class="form-check-input">
+            </td>
+            <td class="border-end border-light">{{ task.id }}</td>
+            <td class="border-end border-light">{{ task.name }}</td>
+            <td class="border-end border-light 
+                {% if task.is_overdue %}text-danger fw-bold
+                {% elif task.is_due_soon %}text-warning fw-bold
+                {% endif %}
+            ">
+                {{ task.deadline }}
+            </td>
+            <td class="border-end border-light text-center">                
+                {% if task.is_shared: %}
+                <span class="badge text-bg-primary">✓</span>
+                {% endif %}
+            </td>
+            <td class="border-end border-light">{{ task.created_at }}</td>
+            <td class="border-end border-light text-center">                
+                {% if task.is_completed: %}
+                <span class="badge text-bg-success">✓</span>
+                {% endif %}
+            </td>
+            <td class="border-end border-light">
+                <a href="{{ url_for('update', task_id=task.id, next=request.path) }}"><span class="btn btn-outline-primary btn-sm">更新</span></a>
+                <a href="/delete/{{ task.id }}"><span class="btn btn-outline-danger btn-sm">削除</span></a>
+            </td>
+        </tr>
+        {% else: %}
+        <tr>
+            <td colspan="8">表示する情報がありません</td>
+        </tr>
+        {% endfor %}
+
+        {% if my_tasks|length > 6 %}
+        <tr>
+            <td colspan="8" class="text-center my-3">
+                <span class="text-muted">⋯⋯⋯⋯⋯⋯</span>
+                <a href="{{ url_for('full') }}"><span style="display:inline-block; text-decoration:none;">一覧を表示</span></a>
+                <span class="text-muted">⋯⋯⋯⋯⋯⋯</span>
+            </td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+<h2><i class="bi bi-crosshair2"></i> 追跡中のタスク</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr class="border-bottom border-dark">
+            <th class="border-end border-#ccc">タスクid</th>
+            <th class="border-end border-#ccc">ユーザ</th>
+            <th class="border-end border-#ccc">タスク名</th>
+            <th class="border-end border-#ccc">締切日時</th>
+            <th class="border-end border-#ccc">作成日時</th>
+            <th class="border-end border-#ccc">完了</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tracked_tasks[:6] %}
+        <tr>
+            <td class="border-end border-light">{{ task.id }}</td>
+            <td class="border-end border-light">{{ task.user_id }}</td>
+            <td class="border-end border-light">{{ task.name }}</td>
+            <td class="border-end border-light 
+                {% if task.is_overdue %}text-danger fw-bold
+                {% elif task.is_due_soon %}text-warning fw-bold
+                {% endif %}
+            ">
+                {{ task.deadline }}
+            </td>
+            <td class="border-end border-light">{{ task.created_at }}</td>
+            <td class="border-end border-light text-center">             
+                {% if task.is_completed: %}
+                <span class="badge text-bg-success">✓</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else: %}
+        <tr>
+            <td colspan="6">表示する情報がありません</td>
+        </tr>
+        {% endfor %}
+
+        {% if tracked_tasks|length > 6 %}
+        <tr>
+            <td colspan="6" class="text-center my-3">
+                <span class="text-muted">⋯⋯⋯⋯⋯⋯</span>
+                <a href="{{ url_for('full') }}"><span style="display:inline-block; text-decoration:none;">一覧を表示</span></a>
+                <span class="text-muted">⋯⋯⋯⋯⋯⋯</span>
+            </td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+</form>
+
+<h2><i class="bi bi-share me-2"></i> 共有タスク</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr class="border-bottom border-dark">
+            <th class="border-end border-#ccc">タスクid</th>
+            <th class="border-end border-#ccc">ユーザ</th>
+            <th class="border-end border-#ccc">タスク名</th>
+            <th class="border-end border-#ccc">締切日時</th>
+            <th class="border-end border-#ccc">作成日時</th>
+            <th class="border-end border-#ccc">完了</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in shared_tasks[:6] %}
+        <tr>
+            <td class="border-end border-light">{{ task.id }}</td>
+            <td class="border-end border-light">{{ task.user_id }}</td>
+            <td class="border-end border-light">{{ task.name }}</td>
+            <td class="border-end border-light 
+                {% if task.is_overdue %}text-danger fw-bold
+                {% elif task.is_due_soon %}text-warning fw-bold
+                {% endif %}
+            ">
+                {{ task.deadline }}
+            </td>
+            <td class="border-end border-light">{{ task.created_at }}</td>
+            <td class="border-end border-light text-center">             
+                {% if task.is_completed: %}
+                <span class="badge text-bg-success">✓</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else: %}
+        <tr>
+            <td colspan="6">表示する情報がありません</td>
+        </tr>
+        {% endfor %}
+
+        {% if shared_tasks|length > 6 %}
+            <tr>
+                <td colspan="6" class="text-center my-3">
+                <span class="text-muted">⋯⋯⋯⋯⋯⋯</span>
+                <a href="{{ url_for('full') }}"><span style="display:inline-block; text-decoration:none;">一覧を表示</span></a>
+                <span class="text-muted">⋯⋯⋯⋯⋯⋯</span>
+            </td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+{% endblock content %}
